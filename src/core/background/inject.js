@@ -18,7 +18,7 @@ define((require) => {
 	 *
 	 * @return {Promise} Promise that will be resolved with InjectResult value
 	 */
-	function pingAndInject(tabId, connector) {
+	function pingAndInject(tabId, connector, urlPattern) {
 		/*
 		 * Ping the content page to see if the script is already in place.
 		 *
@@ -61,8 +61,19 @@ define((require) => {
 							allFrames: connector.allFrames ? connector.allFrames : false
 						};
 
-						console.log(`Injecting ${jsFile}`);
-						chrome.tabs.executeScript(tabId, injectDetails, injectWorker);
+						// Ask for permission
+						chrome.permissions.request({
+							origins: [urlPattern]
+						}).then((approved) => {
+							if (approved) {
+								console.log(`Injecting ${jsFile}`);
+								chrome.tabs.executeScript(tabId, injectDetails, injectWorker);
+								resolve(new InjectResult(InjectResult.MATCHED_AND_INJECTED, connector));
+							}
+							else {
+								resolve(new InjectResult(InjectResult.MATCHED_BUT_DISABLED, connector));
+							}
+						});
 					} else {
 						Config.isConnectorEnabled(connector.label).then((isEnabled) => {
 							if (!isEnabled) {
@@ -98,15 +109,12 @@ define((require) => {
 					patterns = patterns.concat(customPatterns[connector.label]);
 				}
 
-				for (let pattern of patterns) {
-					matchOk = matchOk || UrlMatch.test(tab.url, pattern);
-				}
+				let pattern = patterns.find((pattern) => UrlMatch.test(tab.url, pattern));
 
-				if (matchOk) {
+				if (pattern) {
 					// Checks if there's already injected connector
 					// and injects it if needed
-					return pingAndInject(tab.id, connector);
-
+					return pingAndInject(tab.id, connector, pattern);
 				}
 			}
 
