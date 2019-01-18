@@ -42,8 +42,9 @@
     "contextMenus",
     "tabs",
     "notifications",
-    "storage",
-
+    "storage"
+  ],
+  "optional_permissions": [
     "http://*/",
     "https://*/"
   ],
