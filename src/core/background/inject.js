@@ -95,31 +95,30 @@ define((require) => {
 	 * Check for available connectors and injects matching connector into
 	 * loaded page while returning info about the connector.
 	 *
-	 * @param {Object} tab Tab object
-	 * @return {Promise} Promise that will be resolved with InjectResult value
+	 * @param  {Object} tab Tab object
+	 * @return {Object} InjectResult value
 	 */
-	function onTabsUpdated(tab) {
+	async function onTabsUpdated(tab) {
 		// Asynchronously preload all custom patterns and then start matching
-		return CustomPatterns.getAllPatterns().then((customPatterns) => {
-			for (let connector of connectors) {
-				let matchOk = false;
-				let patterns = connector.matches || [];
+		let customPatterns = await CustomPatterns.getAllPatterns();
+		for (let connector of connectors) {
+			let matchOk = false;
+			let patterns = connector.matches || [];
 
-				if (customPatterns[connector.label]) {
-					patterns = patterns.concat(customPatterns[connector.label]);
-				}
+			if (customPatterns[connector.label]) {
+				patterns = patterns.concat(customPatterns[connector.label]);
+			}
 
 				let pattern = patterns.find((pattern) => UrlMatch.test(tab.url, pattern));
 
 				if (pattern) {
-					// Checks if there's already injected connector
-					// and injects it if needed
+				// Checks if there's already injected connector
+				// and injects it if needed
 					return pingAndInject(tab.id, connector, pattern);
-				}
 			}
+		}
 
-			return new InjectResult(InjectResult.NO_MATCH, null);
-		});
+		return new InjectResult(InjectResult.NO_MATCH, null);
 	}
 
 	return { onTabsUpdated };
