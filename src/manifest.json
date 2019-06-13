@@ -65,9 +65,8 @@
     "storage"
   ],
 
-  "optionalPermissions": [
-    "http://*/",
-    "https://*/"
+  "optional_permissions": [
+    "*://*/"
   ],
 
   "browser_action": {
