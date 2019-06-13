@@ -91,15 +91,20 @@ define((require) => {
 
 			for (let pattern of patterns) {
 				if (UrlMatch.test(tab.url, pattern)) {
-					const isAllowed = await browser.permissions.request({
-						origins: [pattern]
-					});
-					if (!isAllowed) {
-						return new InjectResult(InjectResult.MATCHED_BUT_DISABLED, connector);
-					}
+					try {
+						const isAllowed = await browser.permissions.request({
+							origins: [pattern]
+						});
+						if (!isAllowed) {
+							return new InjectResult(InjectResult.MATCHED_BUT_DISABLED, connector);
+						}
 
-					if (await isConnectorInjected(tab.id)) {
-						return new InjectResult(InjectResult.ALREADY_INJECTED, connector);
+						if (await isConnectorInjected(tab.id)) {
+							return new InjectResult(InjectResult.ALREADY_INJECTED, connector);
+						}
+					} catch (error) {
+						console.error(error.message);
+						return new InjectResult(InjectResult.MATCHED_BUT_DISABLED, connector);
 					}
 
 					return injectScripts(tab.id, connector);
