@@ -269,7 +269,7 @@ module.exports = (grunt) => {
 
 		grunt.task.run([
 			'clean:build', `compile:${browser}`, 'clean:package',
-			'compress', 'clean:build',
+			'compress',
 		]);
 	});
 
